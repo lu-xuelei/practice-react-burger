@@ -1,16 +1,12 @@
 import React, { Component } from "react";
 import { Route } from "react-router-dom";
+import { connect } from 'react-redux';
 
 //import classes from "./Checkout.css";
 import CheckoutSummary from "../../components/order/checkoutSummary/CheckoutSummary";
 import ContactData from "./contactData/ContactData";
 
 class Checkout extends Component {
-  state = {
-    ingredients: null,
-    totalPrice: 0
-  };
-
   componentWillMount() {
     // Retrieve parameter values from query and form the input object
     const query = new URLSearchParams(this.props.location.search);
@@ -39,17 +35,31 @@ class Checkout extends Component {
     return (
       <div>
         <CheckoutSummary
-          ingredients={this.state.ingredients}
+          ingredients={this.props.ingredients}
           checkoutCancelled={this.checkoutCancelledHandler}
           checkoutContinued={this.checkoutContinuedHandler}
         />
         <Route
           path={this.props.match.path + "/contact-data"}
-          render={(props)=>(<ContactData ingredients={this.state.ingredients} price={this.state.totalPrice} {...props}/>)}
+          component={ContactData}
         />
       </div>
     );
   }
 }
 
-export default Checkout;
+const matStateToProps = (state) => {
+  return {
+    ingredients: state.ingredients,
+    totalPrice: state.totalPrice
+  }
+}
+
+// const mapDispatchToProps = (dispatch) => {
+//   return {
+//     checkoutCancelledHandler: () => dispatch({type: AT.CANCEL_CHECKOUT}),
+//     checkoutContinuedHandler: () => dispatch({type: AT.CONTINUE_CHECKOUT})
+//   }
+// }
+
+export default connect(matStateToProps)(Checkout);
