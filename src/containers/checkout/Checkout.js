@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import { Route } from "react-router-dom";
-import { connect } from 'react-redux';
+import { Route, Redirect } from "react-router-dom";
+import { connect } from "react-redux";
 
 //import classes from "./Checkout.css";
 import CheckoutSummary from "../../components/order/checkoutSummary/CheckoutSummary";
@@ -10,11 +10,11 @@ class Checkout extends Component {
   componentWillMount() {
     // Retrieve parameter values from query and form the input object
     const query = new URLSearchParams(this.props.location.search);
-    const ingredients ={};
+    const ingredients = {};
     let price = 0;
 
     for (let param of query.entries()) {
-      if (param[0] === 'price') {
+      if (param[0] === "price") {
         price = +param[1];
       } else {
         ingredients[param[0]] = +param[1];
@@ -32,28 +32,33 @@ class Checkout extends Component {
   };
 
   render() {
-    return (
-      <div>
-        <CheckoutSummary
-          ingredients={this.props.ingredients}
-          checkoutCancelled={this.checkoutCancelledHandler}
-          checkoutContinued={this.checkoutContinuedHandler}
-        />
-        <Route
-          path={this.props.match.path + "/contact-data"}
-          component={ContactData}
-        />
-      </div>
-    );
+    let summary = <Redirect to="/" />;
+    if (this.props.ingredients && !this.props.purchased) {
+      summary = (
+        <div>
+          <CheckoutSummary
+            ingredients={this.props.ingredients}
+            checkoutCancelled={this.checkoutCancelledHandler}
+            checkoutContinued={this.checkoutContinuedHandler}
+          />
+          <Route
+            path={this.props.match.path + "/contact-data"}
+            component={ContactData}
+          />
+        </div>
+      );
+    }
+    return summary;
   }
 }
 
-const matStateToProps = (state) => {
+const matStateToProps = state => {
   return {
-    ingredients: state.ingredients,
-    totalPrice: state.totalPrice
-  }
-}
+    ingredients: state.burger.ingredients,
+    totalPrice: state.burger.totalPrice,
+    purchased: state.purchase.purchased
+  };
+};
 
 // const mapDispatchToProps = (dispatch) => {
 //   return {

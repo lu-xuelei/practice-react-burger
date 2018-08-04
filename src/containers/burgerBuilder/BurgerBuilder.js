@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import {connect} from 'react-redux';
 
-import * as AT from '../../store/Orders';
+import * as actions from '../../store/actions/Actions';
+
 import Aux from "../../hoc/_aux/_Aux";
 import Burger from "../../components/burger/Burger";
 import BurgerControls from "../../components/burger/buildControls/BuildControls";
@@ -21,24 +22,14 @@ class BurgerBuilder extends Component {
   // }
 
   state = {
-    // ingredients: null,
-    // totalPrice: 4.0,
-    //hasIngredients: false,
     checkout: false,
     loading: false,
-    error: false
   };
 
-  // Load ingredients from remote database
-  componentDidMount () {
-    axios.get('/ingredients.json').then(response => {
-      this.setState({ ingredients: response.data });
-    }).catch (error => {
-      this.setState({error: true});
-    });
+  componentDidMount() {
+    this.props.initIngredients();
   }
 
-  // to check whether any ingredients are radded to the burger
   hasIngredients() {
     const sum = Object.keys(this.props.ingredients)
       .map(igKey => {
@@ -59,19 +50,9 @@ class BurgerBuilder extends Component {
   };
 
   continueCheckoutHandler = () => {
-    //alert("continue checkout");
-
-    const queryParams = [];
-
-    // Pass order information via params
-    for (let i in this.state.ingredients) {
-      queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]));
-    }
-    queryParams.push('price=' + this.props.totalPrice);
-    
+    this.props.checkoutStart();
     this.props.history.push({
       pathname: '/checkout',
-      search: '?' + queryParams.join('&')
     });
   };
 
@@ -91,8 +72,8 @@ class BurgerBuilder extends Component {
         <Aux>
           <Burger ingredients={this.props.ingredients} />
           <BurgerControls
-            addIngredient={this.props.addIngredientHandler}
-            removeIngredient={this.props.removeIngredientHandler}
+            addIngredient={this.props.addIngredient}
+            removeIngredient={this.props.removeIngredient}
             disabledAdd={disabledAddInfo}
             disabledRemove={disabledRemoveInfo}
             price={this.props.totalPrice}
@@ -102,7 +83,7 @@ class BurgerBuilder extends Component {
         </Aux>
       );
 
-      if (!this.state.loading) {
+      if (!this.props.error) {
         orderSummary = (
           <OrderSummary
             ingredients={this.props.ingredients}
@@ -130,15 +111,18 @@ class BurgerBuilder extends Component {
 
 const mapStateAsProps = (state) => {
   return {
-    ingredients: state.ingredients,
-    totalPrice: state.totalPrice
+    ingredients: state.burger.ingredients,
+    totalPrice: state.burger.totalPrice,
+    error: state.burger.error
   }
 }
 
 const mapDispatchAsProps = (dispatch) => {
   return {
-    addIngredientHandler: (ingType) => dispatch({type:AT.ADD_INGREDIENT, ingType: ingType}),
-    removeIngredientHandler: (ingType) => dispatch({type:AT.REMOVE_INGREDIENT, ingType: ingType}),
+    checkoutStart: () => dispatch(actions.checkoutStart()),
+    addIngredient: (ingType) => dispatch(actions.addIngredient(ingType)),
+    removeIngredient: (ingType) => dispatch(actions.removeIngredient(ingType)),
+    initIngredients: () => dispatch(actions.initIngredients()),
   }
 }
 
